@@ -8,67 +8,91 @@ namespace Manager
 {
     public class GridManager : MonoBehaviour
     {
-        public static GridManager Instance;
-
         [SerializeField] private ColorResources colorResources;
         [SerializeField] private GameObject gridPrefab;
         [SerializeField] private int gridSize = 5;
 
-        private Dictionary<Vector2Int, Node> _grids = new();
+        private Dictionary<Vector2, Node> _grids = new();
+        private List<Vector2> _occupiedGrids = new();
 
-        private List<Vector2Int> _occupiedGrids = new();
-
-        public ColorType TargetColorType { get; set; }
+        public static ColorType TargetColorType { get; set; }
 
         private void Awake()
         {
-            SetComponentValues();
             CreateGrids();
+        }
+
+        private void OnEnable()
+        {
+            InputHelper.OnNodeSelect += AddToOccupiedGrids;
+            InputHelper.OnNodeSelectedEnd += OccupiedFinish;
+        }
+
+        private void OnDisable()
+        {
+            InputHelper.OnNodeSelect -= AddToOccupiedGrids;
+            InputHelper.OnNodeSelectedEnd -= OccupiedFinish;
         }
 
         private void CreateGrids()
         {
-            for (var x = 0; x < gridSize; x++)
+            var offSet = (gridSize - 1) / 2;
+            for (var positionX = -offSet; positionX <= offSet; positionX++)
             {
-                for (var y = 0; y < gridSize; y++)
-                {
-                    var node = Instantiate(gridPrefab).GetComponent<Node>();
-                    var offSet = (gridSize - 1) / 2;
-                    node.Initialize(colorResources.GetRandomColor(), new Vector2Int(x - offSet, y - offSet));
-                    _grids.Add(new Vector2Int(x - offSet, y - offSet), node);
-                }
+                for (var positionY = -offSet; positionY <= offSet; positionY++) { SetupNode(positionX, positionY); }
             }
         }
 
-        private void SetComponentValues()
+        private void SetupNode(int positionX, int positionY)
         {
-            Instance = this;
+            var node = Instantiate(gridPrefab).GetComponent<Node>();
+            var gridPosition = new Vector2(positionX, positionY);
+            node.Initialize(colorResources.GetRandomColor(), gridPosition);
+            _grids.Add(gridPosition, node);
         }
 
-        public void AddToOccupiedGrids(Vector2Int position)
+        private void AddToOccupiedGrids(Vector2 position)
         {
             if (_occupiedGrids.Contains(position)) { return; }
 
             var lastNode = _occupiedGrids.Count > 0 ? _occupiedGrids.Last() : position;
-            if (IsHandleNode(lastNode, position))
-            {
-                _occupiedGrids.Add(position);
-            }
-            else
-            {
-                Debug.LogError("Invalid Move!");
-            }
+            if (IsHandleNode(lastNode, position)) { OccupiedSuccess(position); }
+            else { OccupiedFail(); }
         }
 
-        private bool IsHandleNode(Vector2Int handleVector, Vector2Int targetVector)
+        private void OccupiedSuccess(Vector2 position)
+        {
+            _occupiedGrids.Add(position);
+        }
+
+        private void OccupiedFail()
+        {
+            _occupiedGrids.Clear();
+        }
+
+        private void OccupiedFinish()
+        {
+        }
+
+        private bool IsHandleNode(Vector2 handleVector, Vector2 targetVector)
         {
             return _grids[targetVector].ColorType.Equals(TargetColorType) &&
                 IsNodeBetweenRange(handleVector, targetVector);
         }
 
-        private bool IsNodeBetweenRange(Vector2Int handleVector, Vector2Int targetVector)
+        private bool IsNodeBetweenRange(Vector2 handleVector, Vector2 targetVector)
         {
-            return Vector2Int.Distance(handleVector, targetVector) <= Mathf.Sqrt(2);
+            for (var positionX = -1; positionX <= 1; positionX++)
+            {
+                for (var positionY = -1; positionY <= 1; positionY++)
+                {
+                    var neighbor = handleVector + new Vector2(positionX, positionY);
+                    if (neighbor == targetVector && _grids.ContainsKey(neighbor))
+                        return true;
+                }
+            }
+
+            return false;
         }
     }
 }

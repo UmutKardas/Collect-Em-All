@@ -17,6 +17,11 @@ namespace Resources
         {
             return colorDatas[Random.Range(0, colorDatas.Count)];
         }
+
+        public ColorType GetColorType(ColorData colorData)
+        {
+            return colorData.ColorType;
+        }
     }
 
     public enum ColorType

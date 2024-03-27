@@ -1,13 +1,17 @@
-﻿using Resources;
+﻿using System;
+using Resources;
 using Structure;
 using UnityEngine;
+using Constants;
 
 namespace Manager
 {
     public class InputHelper : MonoBehaviour
     {
+        public static event Action OnNodeSelectedStart, OnNodeSelectedEnd;
+        public static event Action<Vector2> OnNodeSelect;
+
         private Camera _mainCamera;
-        private const string NODE_LAYER = "Node";
 
         private void Awake()
         {
@@ -25,16 +29,15 @@ namespace Manager
             if (Input.GetMouseButtonDown(0))
             {
                 SetTargetColor(GetSelectionNode() is not null ? GetSelectionNode().ColorType : ColorType.None);
+                OnNodeSelectedStart?.Invoke();
             }
 
-            if (Input.GetMouseButton(0))
-            {
-                SelectNode();
-            }
+            if (Input.GetMouseButton(0)) { SelectNode(); }
 
             if (Input.GetMouseButtonUp(0))
             {
                 SetTargetColor(ColorType.None);
+                OnNodeSelectedEnd?.Invoke();
             }
         }
 
@@ -42,12 +45,12 @@ namespace Manager
         {
             if (GetSelectionNode() is null) { return; }
 
-            GridManager.Instance.AddToOccupiedGrids(GetSelectionNode().PositionID);
+            OnNodeSelect?.Invoke(GetSelectionNode().PositionID);
         }
 
         private void SetTargetColor(ColorType colorType)
         {
-            GridManager.Instance.TargetColorType = colorType;
+            GridManager.TargetColorType = colorType;
         }
 
         private void SetComponentValues()
@@ -57,7 +60,10 @@ namespace Manager
 
         private INode GetSelectionNode()
         {
-            var hit = Physics2D.Raycast(GetMousePosition(), Vector2.zero, 0.1f, LayerMask.GetMask(NODE_LAYER));
+            var hit = Physics2D.Raycast(GetMousePosition(),
+                Vector2.zero,
+                0.1f,
+                LayerMask.GetMask(GameConstants.NODE_LAYER));
             return hit.collider?.GetComponent<INode>();
         }
 
