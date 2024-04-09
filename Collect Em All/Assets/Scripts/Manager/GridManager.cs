@@ -62,16 +62,24 @@ namespace Manager
 
         private void OccupiedSuccess(Vector2 position)
         {
+            _grids[_occupiedGrids.Count > 0 ? _occupiedGrids.Last() : position].AddLineRendererPosition(position);
             _occupiedGrids.Add(position);
         }
 
         private void OccupiedFail()
         {
-            _occupiedGrids.Clear();
+            OccupiedFinish();
         }
 
         private void OccupiedFinish()
         {
+            ClearAllLineRenderers();
+            _occupiedGrids.Clear();
+        }
+
+        private void ClearAllLineRenderers()
+        {
+            _occupiedGrids.ForEach(x => _grids[x].ClearLineRenderer());
         }
 
         private bool IsHandleNode(Vector2 handleVector, Vector2 targetVector)
