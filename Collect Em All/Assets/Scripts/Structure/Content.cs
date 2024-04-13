@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
 using UnityEditor;
 using UnityEngine;
 
@@ -79,6 +80,26 @@ namespace Structure
 
             targetLineRenderer.positionCount = 1;
         }
+
+        protected void PlayPunchScaleAnimation(float delayBeforeAnimation, float animationDuration,
+            TweenCallback beforeAnimationCallback, TweenCallback afterAnimationCallback)
+        {
+            var sequence = DOTween.Sequence();
+            sequence.AppendInterval(delayBeforeAnimation);
+            sequence.AppendCallback(beforeAnimationCallback);
+            sequence.Append(transform.DOPunchScale(new Vector3(0.2f, 0.2f, 0.2f), animationDuration, 2, 1f))
+                .OnComplete(afterAnimationCallback);
+        }
+
+        protected void PlayMoveAnimationY(float targetYPosition, float delayBeforeAnimation, float animationDuration,
+            TweenCallback beforeAnimationCallback, TweenCallback afterAnimationCallback)
+        {
+            var sequence = DOTween.Sequence();
+            sequence.AppendInterval(delayBeforeAnimation);
+            sequence.AppendCallback(beforeAnimationCallback);
+            sequence.Append(transform.DOMoveY(targetYPosition, animationDuration)).OnComplete(afterAnimationCallback);
+        }
+
 
         private IEnumerable<Vector2> GetLineRendererPositions(string targetName)
         {
