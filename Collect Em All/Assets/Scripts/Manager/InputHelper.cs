@@ -18,7 +18,6 @@ namespace Manager
             SetComponentValues();
         }
 
-
         private void Update()
         {
             HandleMouseInput();
@@ -28,7 +27,7 @@ namespace Manager
         {
             if (Input.GetMouseButtonDown(0))
             {
-                SetTargetColor(GetSelectionNode() is not null ? GetSelectionNode().ColorType : ColorType.None);
+                SetTargetColor(GetSelectionNode()?.ColorType ?? ColorType.None);
                 OnNodeSelectedStart?.Invoke();
             }
 
@@ -43,15 +42,12 @@ namespace Manager
 
         private void SelectNode()
         {
-            if (GetSelectionNode() is null) { return; }
-
-            OnNodeSelect?.Invoke(GetSelectionNode().PositionID);
+            var selectionNode = GetSelectionNode();
+            if (selectionNode != null) { OnNodeSelect?.Invoke(selectionNode.PositionID); }
         }
 
-        private void SetTargetColor(ColorType colorType)
-        {
-            GridManager.TargetColorType = colorType;
-        }
+        private void SetTargetColor(ColorType colorType) => GridManager.Instance.TargetColorType = colorType;
+
 
         private void SetComponentValues()
         {

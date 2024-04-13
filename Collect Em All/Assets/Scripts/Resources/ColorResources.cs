@@ -8,7 +8,7 @@ namespace Resources
     {
         [SerializeField] private List<ColorData> colorDatas;
 
-        public ColorData GetColor(ColorType colorType)
+        public ColorData GetColorData(ColorType colorType)
         {
             return colorDatas.Find(x => x.ColorType == colorType);
         }
@@ -31,8 +31,6 @@ namespace Resources
         Green,
         Blue,
         Yellow,
-        Purple,
-        Orange
     }
 
     [System.Serializable]
